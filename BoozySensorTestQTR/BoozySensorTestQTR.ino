@@ -35,9 +35,9 @@ int amountOfGlassesSlave;  // SUM of the amount of glasses present
 
 int pulseValue = 2;   // amount of glasses when the brighness starts pulsating
 int Brightness = 0;   // initial brightness;
-int fadeAmount = 5;   // how many points to fade the LED by
+int fadeAmount = 25;   // how many points to fade the LED by
  
-Adafruit_NeoPixel strip = Adafruit_NeoPixel((NUM_PIXELS*2), LEDPIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel((NUM_PIXELS*2), LEDPIN, NEO_RGB + NEO_KHZ800);
  
 // Colors
 uint32_t colorOFF = strip.Color(0, 0, 0);
@@ -48,7 +48,7 @@ uint32_t colorSEVEN = strip.Color(255, 120, 0);
 uint32_t colorSIX = strip.Color(255, 180, 0);
 uint32_t colorFIVE = strip.Color(255, 255, 0);
 uint32_t colorFOUR = strip.Color(180, 255, 0);
-uint32_t colorTHREE = strip.Color(120, 0, 0);
+uint32_t colorTHREE = strip.Color(120, 255, 0);
 uint32_t colorTWO = strip.Color(60, 255, 0);
 uint32_t colorONE = strip.Color(0, 255, 0);
  
@@ -79,71 +79,102 @@ void setup()
 void loop()
 {
   amountOfGlasses = 0;
+  Serial.println("Glasses present: ");
+ 
+ 
  
    //Read sensors MAIN side
    for(int i = 0; i < (NUM_SENSORS); i++)  {
     int glass = readinputPin(i);
    
     glassesPresent[i] = (glass>calibratedValue) ? 0 : 1;
+    Serial.print(glassesPresent[i]);
+    Serial.print(", ");
     amountOfGlasses += glassesPresent[i];
 
   }
+  Serial.println("."); 
   
-  if(debug){
-    Serial.print("glasses: ");
-    Serial.println(amountOfGlasses);
+
+ 
+  if (debug){
+    Serial.print("amountOfGlasses: ");
+    Serial.print(amountOfGlasses);
+    Serial.print(" colour: ");
+    Serial.println(colorDISPLAY[amountOfGlasses]);
   }
+ 
+
+  switch (amountOfGlasses) {
   
-  // Read sensors Slave side
-  for(int i = NUM_SENSORS; i < (NUM_SENSORS*2); i++)  {
-    int glass = readinputPin(i);
-   
-    glassesPresentSlave[i] = (glass>calibratedValue) ? 1 : 0;
-    amountOfGlassesSlave += glassesPresentSlave[i];
-  }
-
- //Main if 10 glasses, rainbow
-  if (amountOfGlasses == 10) {
-    rainbowCycle(20, 0, 9);
-        if(debug){
-      Serial.print("rainbow");
-    }
-  }
-  //Slave if 10 glasses, rainbow
-  if (amountOfGlassesSlave == 10) {
-    rainbowCycle(20, 10, (NUM_PIXELS*2));
-  }   
+    //2 glasses left
+       case 2:
+        if (debug){
+          Serial.println("Case: 2");
+        }
+        pulsate();
+        for (int i=0;i<NUM_PIXELS;i++){ 
+            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
+            strip.setPixelColor(i, ColorToDisplay);
+            strip.show();
+        }
+        break;
+      
+  //1 glass left
+       case 1:
+        if (debug){
+          Serial.println("Case: 1");
+        }
+        pulsate();
+        for (int i=0;i<NUM_PIXELS;i++){ 
+            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
+            strip.setPixelColor(i, ColorToDisplay);
+            strip.show();
+        }
+        break;
+      
+  // DEAD   
+        case 0:
+        if (debug){
+          Serial.println("Case: 0");
+        }
+        strip.setBrightness(220);
+        for (int i=0;i<NUM_PIXELS;i++){ 
+          strip.setPixelColor(i, colorOFF);
+          strip.show();
+        }
+        break;
+        
+   // FULL LIFE    
+       case 10:
+         if (debug){
+          Serial.println("Case: 10");
+         }
+        for (int i=0;i<NUM_PIXELS;i++){ 
+            strip.setPixelColor(i, colorTEN);
+            strip.show();
+        }
+       break;   
   
-  // not full life, change colours per amount of glasses
-  if (amountOfGlasses<10) {
-    //Main side
-    for (int j=0;j<NUM_SENSORS;j++){
-      if (glassesPresent[j]){
-        strip.setPixelColor(j, colorDISPLAY[amountOfGlasses]);
-        strip.show();
-      }
-    }
-
-
-  if (amountOfGlassesSlave<10) {
-    //Slave side
-    for (int k=NUM_SENSORS;k<(NUM_SENSORS*2);k++){
-      if (glassesPresentSlave[k]){
-        strip.setPixelColor(k, colorDISPLAY[amountOfGlassesSlave]);
-        strip.show();
-      }
-    }
+  // EVERYTHING ELSE (3-9)
+      default:
+      if (debug){
+          Serial.println("Case: default");
+        }
+        //9 glasses left
+              strip.setBrightness(220);
+        for (int i=0;i<NUM_PIXELS;i++){ 
+            uint32_t ColorToDisplay = glassesPresent[i] ?  colorDISPLAY[amountOfGlasses] : colorOFF;
+            strip.setPixelColor(i, ColorToDisplay);
+            strip.show();
+        }
+        break; 
   }
 
-  delay(10);
-  }
-  
-  // if we have only "pulseValue" of glasses left, start playing with the brightness on both sides
-  if (amountOfGlasses<=pulseValue || amountOfGlassesSlave <=pulseValue ){
-    pulsate();
-  }
-
+//Useful?
+//delay(10);
 }
+ 
  
 // NAME: readinputPin
 // INPUT: mux channel as an integer, 0 - 15
@@ -196,7 +227,7 @@ void pulsate(){
   strip.setBrightness(Brightness);
   Brightness = Brightness + fadeAmount;
      
-  if (Brightness == 0 || Brightness == 255) {
+  if (Brightness == 0 || Brightness >= 250) {
     fadeAmount = -fadeAmount ;
   }
 }
