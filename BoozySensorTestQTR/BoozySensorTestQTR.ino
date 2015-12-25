@@ -19,7 +19,7 @@
 //4067 Slave side
 #define inputPinSlave A1      
 #define setPin4 9             // Digital Pin 9
-#define setPin5 10            // Digital Pin 10#
+#define setPin5 10            // Digital Pin 10
 #define setPin6 11            // Digital Pin 11
 #define setPin7 12            // Digital Pin 12
  
@@ -52,7 +52,7 @@ uint32_t colorTHREE = strip.Color(120, 0, 0);
 uint32_t colorTWO = strip.Color(60, 255, 0);
 uint32_t colorONE = strip.Color(0, 255, 0);
  
-uint32_t colorDISPLAY[NUM_PIXELS] = {colorTEN,colorNINE,colorEIGHT,colorSEVEN,colorSIX,colorFIVE,colorFOUR,colorTHREE,colorTWO,colorONE};
+uint32_t colorDISPLAY[NUM_PIXELS] = {colorOFF, colorONE, colorTWO, colorTHREE, colorFOUR, colorFIVE, colorSIX, colorSEVEN, colorEIGHT, colorNINE};
  
 void setup()
 {
@@ -80,14 +80,21 @@ void loop()
 {
   amountOfGlasses = 0;
  
-   //Read sensors
+   //Read sensors MAIN side
    for(int i = 0; i < (NUM_SENSORS); i++)  {
     int glass = readinputPin(i);
    
-    glassesPresent[i] = (glass>calibratedValue) ? 1 : 0;
+    glassesPresent[i] = (glass>calibratedValue) ? 0 : 1;
     amountOfGlasses += glassesPresent[i];
-  }
 
+  }
+  
+  if(debug){
+    Serial.print("glasses: ");
+    Serial.println(amountOfGlasses);
+  }
+  
+  // Read sensors Slave side
   for(int i = NUM_SENSORS; i < (NUM_SENSORS*2); i++)  {
     int glass = readinputPin(i);
    
@@ -98,20 +105,17 @@ void loop()
  //Main if 10 glasses, rainbow
   if (amountOfGlasses == 10) {
     rainbowCycle(20, 0, 9);
+        if(debug){
+      Serial.print("rainbow");
+    }
   }
-
   //Slave if 10 glasses, rainbow
   if (amountOfGlassesSlave == 10) {
     rainbowCycle(20, 10, (NUM_PIXELS*2));
-  }
-   
+  }   
+  
   // not full life, change colours per amount of glasses
-  else {
-    // if we have only "pulseValue" of glasses left, start playing with the brightness on both sides
-    if (amountOfGlasses==pulseValue || amountOfGlassesSlave==pulseValue ){
-      pulsate();
-    }
-
+  if (amountOfGlasses<10) {
     //Main side
     for (int j=0;j<NUM_SENSORS;j++){
       if (glassesPresent[j]){
@@ -120,16 +124,25 @@ void loop()
       }
     }
 
+
+  if (amountOfGlassesSlave<10) {
     //Slave side
     for (int k=NUM_SENSORS;k<(NUM_SENSORS*2);k++){
-    if (glassesPresentSlave[k]){
-      strip.setPixelColor(k, colorDISPLAY[amountOfGlassesSlave]);
-      strip.show();
+      if (glassesPresentSlave[k]){
+        strip.setPixelColor(k, colorDISPLAY[amountOfGlassesSlave]);
+        strip.show();
+      }
     }
   }
 
-  delay(20);
+  delay(10);
   }
+  
+  // if we have only "pulseValue" of glasses left, start playing with the brightness on both sides
+  if (amountOfGlasses<=pulseValue || amountOfGlassesSlave <=pulseValue ){
+    pulsate();
+  }
+
 }
  
 // NAME: readinputPin
@@ -142,9 +155,10 @@ int readinputPin(int channel)
   digitalWrite(setPin1, bitRead(channel, 1));
   digitalWrite(setPin2, bitRead(channel, 2));
   digitalWrite(setPin3, bitRead(channel, 3));
- 
   // read from the selected mux channel
   int inputPinValue = analogRead(inputPin);
+ 
+   // should i do more than 1 reading here?
  
   // return the received analog value
   return inputPinValue;
