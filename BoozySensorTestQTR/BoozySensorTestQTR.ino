@@ -106,8 +106,7 @@ void loop()
  
 
   switch (amountOfGlasses) {
-  
-    //2 glasses left
+ //2 glasses left
        case 2:
         if (debug){
           Serial.println("Case: 2");
@@ -231,3 +230,36 @@ void pulsate(){
     fadeAmount = -fadeAmount ;
   }
 }
+
+uint32_t fader(uint32_t inputColor){
+    Brightness = Brightness + fadeAmount;
+     
+  if (Brightness == 0 || Brightness >= 250) {
+    fadeAmount = -fadeAmount;
+    
+    
+    
+    
+    
+    uint32_t returnColor = 
+    
+    strip.setPixelColor(n, (brightness*r/255) , (brightness*g/255), (brightness*b/255));
+    
+  }
+}
+
+
+
+ * splitColor() - Receive a uint32_t value, and spread into bits.
+ */
+uint8_t splitColor ( uint32_t c, char value )
+{
+  switch ( value ) {
+    case 'r': return (uint8_t)(c >> 16);
+    case 'g': return (uint8_t)(c >>  8);
+    case 'b': return (uint8_t)(c >>  0);
+    default:  return 0;
+  }
+}
+
+
