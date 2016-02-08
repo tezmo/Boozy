@@ -18,10 +18,10 @@
 
 //4067 Slave side
 #define inputPinSlave A1      
-#define setPin4 9             // Digital Pin 9
-#define setPin5 10            // Digital Pin 10
-#define setPin6 11            // Digital Pin 11
-#define setPin7 12            // Digital Pin 12
+#define setPin4 10             // Digital Pin 9
+#define setPin5 11            // Digital Pin 10
+#define setPin6 12            // Digital Pin 11
+#define setPin7 13            // Digital Pin 12
  
 boolean debug = true;
 
@@ -59,7 +59,6 @@ void setup()
   Serial.begin(9600);
   if(debug){Serial.println("SETUP");}
    
-  pinMode(13, OUTPUT);
   pinMode(setPin0, OUTPUT);
   pinMode(setPin1, OUTPUT);
   pinMode(setPin2, OUTPUT);

@@ -18,10 +18,10 @@
 
 //4067 Slave side
 #define inputPinSlave A1      
-#define setPin4 9             // Digital Pin 9
-#define setPin5 10            // Digital Pin 10
-#define setPin6 11            // Digital Pin 11
-#define setPin7 12            // Digital Pin 12
+#define setPin4 10             // Digital Pin 9
+#define setPin5 11            // Digital Pin 10
+#define setPin6 12            // Digital Pin 11
+#define setPin7 13            // Digital Pin 12
  
 boolean debug = true;
 
@@ -32,7 +32,7 @@ int amountOfGlassesSlave;  // SUM of the amount of glasses present
 
 int pulseValue = 2;   // amount of glasses when the brighness starts pulsating
 int Brightness = 0;   // initial brightness;
-int fadeAmount = 25;   // how many points to fade the LED by
+
  
 Adafruit_NeoPixel strip = Adafruit_NeoPixel((NUM_PIXELS), LEDPIN, NEO_RGB + NEO_KHZ800);
  
@@ -55,8 +55,8 @@ void setup()
 {
   Serial.begin(9600);
   if(debug){Serial.println("SETUP");}
-   
-  pinMode(13, OUTPUT);
+
+  // Master side
   pinMode(setPin0, OUTPUT);
   pinMode(setPin1, OUTPUT);
   pinMode(setPin2, OUTPUT);
@@ -175,7 +175,7 @@ void runSide(int amount, int start, int finish){
         if (debug){
           Serial.println("Case: 2");
         }
-        pulsate();
+        pulsate(25);
         for (int i=start;i<finish;i++){ 
             uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
             strip.setPixelColor(i, ColorToDisplay);
@@ -187,7 +187,7 @@ void runSide(int amount, int start, int finish){
         if (debug){
           Serial.println("Case: 1");
         }
-        pulsate();
+        pulsate(40);
         for (int i=start;i<finish;i++){ 
             uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
             strip.setPixelColor(i, ColorToDisplay);
@@ -230,7 +230,9 @@ void runSide(int amount, int start, int finish){
   }
 }
 
-void pulsate(){
+void pulsate(int fadeAmount){
+  
+  
   strip.setBrightness(Brightness);
   Brightness = Brightness + fadeAmount;
      
