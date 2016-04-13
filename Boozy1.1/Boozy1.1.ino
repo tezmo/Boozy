@@ -18,10 +18,10 @@
 
 //4067 Slave side
 #define inputPinSlave A1      
-#define setPin4 10             // Digital Pin 9
-#define setPin5 11            // Digital Pin 10
-#define setPin6 12            // Digital Pin 11
-#define setPin7 13            // Digital Pin 12
+#define setPin4 10             // Digital Pin 10
+#define setPin5 11            // Digital Pin 11
+#define setPin6 12            // Digital Pin 12
+#define setPin7 13            // Digital Pin 13
  
 boolean debug = true;
 
@@ -76,33 +76,23 @@ void setup()
 void loop()
 {
 
-/*  
-   Read sensors Main side & slave side
-    count glasses main & slave
-       choose color main and choose color slave
-       set colors and display leds
-*/ 
-  
-  
   amountOfGlasses = 0;
   amountOfGlassesSlave = 0;
  
-   //Read sensors into array
-   for(int i = 0; i < NUM_SENSORS; i++)  {
+   //Read sensors MASTER into array
+   for(int i = 0; i < (NUM_SENSORS/2); i++)  {
     int glass = readinputPin(i);
     glassesPresent[i] = (glass>calibratedValue) ? 0 : 1;
-  }
-  
-  // count glasses
-  for (int i=0; i<10;i++) {
     amountOfGlasses += glassesPresent[i];
   }
-  
-    // count glasses
-  for (int i=10; i<NUM_SENSORS ;i++) {
+
+     //Read sensors SLAVE into array
+   for(int i = (NUM_SENSORS/2); i < NUM_SENSORS; i++)  {
+    int glass2 = readinputPinSlave(i);
+    glassesPresent[i] = (glass2>calibratedValue) ? 0 : 1;
     amountOfGlassesSlave += glassesPresent[i];
   }
-  
+
   
  
   if (debug){
