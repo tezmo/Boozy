@@ -34,7 +34,7 @@ int pulseValue = 2;   // amount of glasses when the brighness starts pulsating
 int Brightness = 0;   // initial brightness;
 
  
-Adafruit_NeoPixel strip = Adafruit_NeoPixel((NUM_PIXELS), LEDPIN, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, LEDPIN, NEO_RGB + NEO_KHZ800);
  
 // Colors
 uint32_t colorOFF = strip.Color(0, 0, 0);
@@ -49,7 +49,7 @@ uint32_t colorTHREE = strip.Color(120, 255, 0);
 uint32_t colorTWO = strip.Color(60, 255, 0);
 uint32_t colorONE = strip.Color(0, 255, 0);
  
-uint32_t colorDISPLAY[NUM_PIXELS] = {colorOFF, colorONE, colorTWO, colorTHREE, colorFOUR, colorFIVE, colorSIX, colorSEVEN, colorEIGHT, colorNINE};
+uint32_t colorDISPLAY[(NUM_PIXELS/2)] = {colorOFF, colorONE, colorTWO, colorTHREE, colorFOUR, colorFIVE, colorSIX, colorSEVEN, colorEIGHT, colorNINE};
  
 void setup()
 {
@@ -78,32 +78,38 @@ void loop()
 
   amountOfGlasses = 0;
   amountOfGlassesSlave = 0;
- 
-   //Read sensors MASTER into array
-   for(int i = 0; i < (NUM_SENSORS/2); i++)  {
-    int glass = readinputPin(i);
-    glassesPresent[i] = (glass>calibratedValue) ? 0 : 1;
-    amountOfGlasses += glassesPresent[i];
-  }
 
-     //Read sensors SLAVE into array
-   for(int i = (NUM_SENSORS/2); i < NUM_SENSORS; i++)  {
-    int glass2 = readinputPinSlave(i);
-    glassesPresent[i] = (glass2>calibratedValue) ? 0 : 1;
-    amountOfGlassesSlave += glassesPresent[i];
-  }
 
-  
+//Read sensors into array
+   for(int i = 0; i < (NUM_SENSORS); i++)  {
+      if (i < (NUM_SENSORS/2)) {
+        int glass = readinputPin(i);
+        glassesPresent[i] = (glass>calibratedValue) ? 0 : 1;
+        amountOfGlasses += glassesPresent[i];
+      }
+      else if (i >= (NUM_SENSORS/2)){
+       int glassSlave = readinputPinSlave(i-(NUM_PIXELS/2));
+       glassesPresent[i] = (glassSlave>calibratedValue) ? 0 : 1;
+       amountOfGlassesSlave += glassesPresent[i];     
+      }
+      else {
+        Serial.println("Well this is odd..");
+      }
+}
+
  
   if (debug){
-    Serial.print("amountOfGlasses: ");
+    Serial.print("MASTER: ");
     Serial.print(amountOfGlasses);
-    Serial.print(" colour: ");
-    Serial.println(colorDISPLAY[amountOfGlasses]);
-    Serial.print("amountOfGlassesSlave: ");
+    Serial.print(" glasses, ");
+    Serial.print(colorDISPLAY[amountOfGlasses]);
+    Serial.println(" colour]");
+
+    Serial.print("SLAVE: ");
     Serial.print(amountOfGlassesSlave);
-    Serial.print(" colour: ");
-    Serial.println(colorDISPLAY[amountOfGlassesSlave]);
+    Serial.print(" glasses, ");
+    Serial.print(colorDISPLAY[amountOfGlassesSlave]);
+    Serial.println(" colour]");
   }
  
 
@@ -134,8 +140,6 @@ int readinputPin(int channel)
   // read from the selected mux channel
   int inputPinValue = analogRead(inputPin);
  
-   // should i do more than 1 reading here?
- 
   // return the received analog value
   return inputPinValue;
 }
@@ -151,8 +155,6 @@ int readinputPinSlave(int channel)
   // read from the selected mux channel
   int inputPinValueSlave = analogRead(inputPinSlave);
  
-   // should i do more than 1 reading here?
- 
   // return the received analog value
   return inputPinValueSlave;
 }
@@ -167,7 +169,7 @@ void runSide(int amount, int start, int finish){
         }
         pulsate(25);
         for (int i=start;i<finish;i++){ 
-            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
+            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amount] : colorOFF;
             strip.setPixelColor(i, ColorToDisplay);
         }
         break;
@@ -179,7 +181,7 @@ void runSide(int amount, int start, int finish){
         }
         pulsate(40);
         for (int i=start;i<finish;i++){ 
-            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amountOfGlasses] : colorOFF;
+            uint32_t ColorToDisplay = glassesPresent[i] ? colorDISPLAY[amount] : colorOFF;
             strip.setPixelColor(i, ColorToDisplay);
         }
         break;
@@ -213,7 +215,7 @@ void runSide(int amount, int start, int finish){
         //9 glasses left
               strip.setBrightness(220);
         for (int i=start;i<finish;i++){ 
-            uint32_t ColorToDisplay = glassesPresent[i] ?  colorDISPLAY[amountOfGlasses] : colorOFF;
+            uint32_t ColorToDisplay = glassesPresent[i] ?  colorDISPLAY[amount] : colorOFF;
             strip.setPixelColor(i, ColorToDisplay);
         }
         break; 
