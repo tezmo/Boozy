@@ -38,7 +38,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, LEDPIN, NEO_RGB + NEO_KH
  
 // Colors
 uint32_t colorOFF = strip.Color(0, 0, 0);
-uint32_t colorTEN = strip.Color(255, 255, 255); //NOT USED, using rainbow instead
+uint32_t colorTEN = strip.Color(255, 255, 255);
 uint32_t colorNINE = strip.Color(255, 0, 0);
 uint32_t colorEIGHT = strip.Color(255, 60, 0);
 uint32_t colorSEVEN = strip.Color(255, 120, 0);
